@@ -181,13 +181,14 @@ class AutoReservation:
                 (0, 0, 0),
                 (255, 255, 255)
             )
+            sleep(1)
             # verifyPicWithCharTarget_base64 = image_edition.image2base64(verifyPicWithCharTarget)
 
             # 保存为图片
-            verifyPicWithCharTarget.save("temp.jpg")
-            recogResults: list = cap.run("temp.jpg")
-            sleep(3)
-
+            img_byte = io.BytesIO()
+            verifyPicWithCharTarget.save(img_byte, format='JPEG')
+            recogResults: list = cap.run(img_byte.getvalue())
+            sleep(2)
             # recogResults: list = nn_service_request.nn_service_request(verifyPicWithCharTarget_base64)
             if not len(recogResults) == len(verifyCharTarget):
                 # 换验证码
