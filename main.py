@@ -236,7 +236,7 @@ class AutoReservation:
                 ) == 'block'
                 if isValidPopupClosed and isVerifyResultShowed:
                     submitBtn = self.driver.find_element(By.ID,'btn_sub')
-                    # submitBtn.click()
+                    submitBtn.click()
                     print("{}_{}_{} 预约成功".format(ar.reservation_arena, ar.reservation_date, ar.reservation_time))
                     break
 
