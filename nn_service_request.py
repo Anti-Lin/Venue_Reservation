@@ -14,7 +14,8 @@ def nn_service_request(
         "http://127.0.0.1:8000/{}".format(api_name),
         data=requestBody
     )   # 为什么这里的请求体是传给data形参，而不是json形参？？
-    print(requestBody)
+    # print('\r\n')
+    # print(requestBody)
     assert raw_result.status_code == 200, "返回错误码：{}".format(raw_result.status_code)
     recog_result = json.loads(raw_result.content.decode("utf-8"))
     return recog_result['data']['res']

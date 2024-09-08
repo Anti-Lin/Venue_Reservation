@@ -160,19 +160,32 @@ class AutoReservation:
         # 如果点击完成后，提示验证失败，则重新识别并点击
         # 直到识别成功
         cap = TextSelectCaptcha()
+        previous_verifyPic_base64 = None  # 记录上一次验证码的base64
+
         while True:
             verifyPic_base64 = self.driver.find_element(
                 By.CLASS_NAME, 'valid_bg-img'
             ).get_dom_attribute('src')
             
             verifyPic_base64 = verifyPic_base64.replace('data:image/jpg;base64,', '')  # 去掉base64头
+
+            if verifyPic_base64 == previous_verifyPic_base64:
+                # 等待一段时间，避免频繁重复
+                sleep(1)
+                continue
+
+            # 更新previous_verifyPic_base64为新的验证码base64
+            previous_verifyPic_base64 = verifyPic_base64
+
             # base64 -> image data -> image stream -> Image对象
             verifyPic = Image.open(io.BytesIO(base64.decodebytes(verifyPic_base64.encode())))
+            # verifyPic.show()
             verifyCharTarget = self.wait.until(
                 ExpectedCond.presence_of_element_located(
                     (By.XPATH, '//span[@class="valid_tips__text"]//b')
                 )
             ).text
+            # print(verifyCharTarget)
             verifyPicWithCharTarget = image_edition.image_edition(
                 verifyPic,
                 verifyCharTarget,
@@ -181,18 +194,19 @@ class AutoReservation:
                 (0, 0, 0),
                 (255, 255, 255)
             )
-            sleep(1)
-            # verifyPicWithCharTarget_base64 = image_edition.image2base64(verifyPicWithCharTarget)
-
+            verifyPicWithCharTarget_base64 = image_edition.image2base64(verifyPicWithCharTarget)
+            #verifyPicWithCharTarget.show()
+            recogResults: list = nn_service_request.nn_service_request(verifyPicWithCharTarget_base64)
             # 保存为图片
-            img_byte = io.BytesIO()
-            verifyPicWithCharTarget.save(img_byte, format='JPEG')
-            recogResults: list = cap.run(img_byte.getvalue())
-            sleep(2)
+            # img_byte = io.BytesIO()
+            # sleep(0.5)
+            # verifyPicWithCharTarget.save(img_byte, format='JPEG')
+            # recogResults: list = cap.run(img_byte.getvalue())
+            # sleep(3)
             # recogResults: list = nn_service_request.nn_service_request(verifyPicWithCharTarget_base64)
             if not len(recogResults) == len(verifyCharTarget):
                 # 换验证码
-                # sleep(1)    # 防止点得太快了触发什么机制
+                sleep(1)    # 防止点得太快了触发什么机制
                 self.driver.find_element(By.CLASS_NAME, 'valid_refresh').click()
             else:
                 # 点击对应位置
@@ -222,8 +236,8 @@ class AutoReservation:
                 ) == 'block'
                 if isValidPopupClosed and isVerifyResultShowed:
                     submitBtn = self.driver.find_element(By.ID,'btn_sub')
-                    submitBtn.click()
-                    print("预约成功。")
+                    # submitBtn.click()
+                    print("{}_{}_{} 预约成功".format(ar.reservation_arena, ar.reservation_date, ar.reservation_time))
                     break
 
     def clean_up(self):

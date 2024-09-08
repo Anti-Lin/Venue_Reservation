@@ -46,7 +46,7 @@ def image2base64(image: Image.Image):
     file_name = 'temp.jpg'
     if os.path.exists(file_name):
         count += 1
-        file_name = 'temp{}.jpg'.format('_' + count)
+        file_name = 'temp{}.jpg'.format('_' + str(count))
     image.save(file_name)
     with open(file_name, 'rb') as file:
         image_base64 = base64.b64encode(file.read()).decode()

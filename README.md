@@ -9,6 +9,8 @@
 ``` bash
 1、准备运行环境：
 pip install -r requirements.txt
-2、运行命令：
+2、运行图片识别服务
+python service.py
+3、运行命令：
 python main.py --username <学号> --password <密码> --reservation-arena <场馆名称> --reservation-date YYYY-MM-DD --reservation-time hh:mm
 ```  

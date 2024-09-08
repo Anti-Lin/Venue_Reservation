@@ -33,7 +33,7 @@ async def identify_picture(Item: Input):
     except:
         print("error：", traceback.format_exc())
         return errors.bad_error()
-    return {'code': 200, 'msg': "成功", "data": res}
+    return {'code': "200", 'msg': "成功", "data": res}
 
 
 @router.post("/show", summary="识别后图片效果")

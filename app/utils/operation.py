@@ -16,7 +16,7 @@ cap_model = captcha.TextSelectCaptcha()
 
 
 def run(item):
-    imageID = item.imageID
+    imageID = 0
     imageSource = interface.set_imageSource(item.dataType, item.imageSource)
     res = cap_model.run(imageSource)
     return {"imageID": imageID, "res": res}
