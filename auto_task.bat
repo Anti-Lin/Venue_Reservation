@@ -8,7 +8,7 @@ start python service.py
 
 :: Step 2: 执行 main.py，根据参数进行并发预定
 :: 设置变量
-set username=2421024xxxx
+set username=xxxxxxxx
 set password=xxxxxxxx
 set arena=xxxxxxxx
 ::set date=<YYYY-MM-DD>
