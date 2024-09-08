@@ -9,6 +9,8 @@
 ``` bash
 1、准备运行环境：
 pip install -r requirements.txt
+2、配置auto_task.bat脚本
+填写对应的场地、时间、账号密码、service和main的绝对路径、conda环境的名称等
 2、运行auto_task.bat脚本
 # 注意该文件用ANSI编码保存
 # python3.8.8亲测可用
