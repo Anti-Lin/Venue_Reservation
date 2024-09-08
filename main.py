@@ -236,8 +236,11 @@ class AutoReservation:
                 ) == 'block'
                 if isValidPopupClosed and isVerifyResultShowed:
                     submitBtn = self.driver.find_element(By.ID,'btn_sub')
-                    submitBtn.click()
+                    # submitBtn.click()
                     print("{}_{}_{} 预约成功".format(ar.reservation_arena, ar.reservation_date, ar.reservation_time))
+                    filename = "{}_{}_{} 预约成功.txt".format(ar.reservation_arena, ar.reservation_date, ar.reservation_time)
+                    with open(filename, "w", encoding="utf-8") as file:
+                        file.write("success.")
                     break
 
     def clean_up(self):

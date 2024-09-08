@@ -9,8 +9,7 @@
 ``` bash
 1、准备运行环境：
 pip install -r requirements.txt
-2、运行图片识别服务
-python service.py
-3、运行命令：
-python main.py --username <学号> --password <密码> --reservation-arena <场馆名称> --reservation-date YYYY-MM-DD --reservation-time hh:mm
+2、运行auto_task.bat脚本
+# 注意该文件用ANSI编码保存
+# python3.8.8亲测可用
 ```  
