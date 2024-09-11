@@ -12,7 +12,7 @@
 pip install -r requirements.txt
 2、配置auto_task.bat脚本
 填写对应的场地、时间、账号密码、service和main的绝对路径、conda环境的名称等
-2、运行auto_task.bat脚本
+3、运行auto_task.bat脚本
 # 注意该文件用GBK2312编码保存、打开，否则会出错
 # python3.8.8亲测可用
 ```  
