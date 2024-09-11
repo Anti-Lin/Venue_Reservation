@@ -19,7 +19,7 @@ for /f %%i in ('powershell -Command "(Get-Date).AddDays(2).ToString(\"yyyy-MM-dd
 echo the reservation date is %date%
 
 :: 设置需要预定的时间段，以空格分隔，如果有多个时间，可以并发执行
-set times=09:00 10:00 11:00
+set times=09:00
 :: 示例：set times=08:00 10:00 14:00
 
 :: 遍历所有预定时间，并使用 start 命令实现并发执行

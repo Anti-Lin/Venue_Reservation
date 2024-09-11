@@ -102,12 +102,21 @@ class AutoReservation:
         time.sleep(1)
         self.driver.switch_to.window(self.driver.window_handles[-1])
 
-        # 选择场馆，场馆列表使用iframe标签内嵌了一个网页，要切换frame，如果页面没有加载出来，一秒刷新一次
-        gymListFrame = self.wait_for_element(
-            By.ID, 'contentIframe'
-        )
-        
-        self.driver.switch_to.frame(gymListFrame)
+        # 选择场馆，场馆列表使用iframe标签内嵌了一个网页，要切换frame
+        while True:
+            try:
+                WebDriverWait(self.driver, 3).until(
+                    ExpectedCond.frame_to_be_available_and_switch_to_it(
+                        (
+                            By.ID,
+                            'contentIframe'
+                        )
+                    )
+                )
+                break
+            except:
+                self.driver.refresh()
+
         self.driver.find_element(by=By.XPATH, value="//a[contains(text(), '{}')]".format(self.reservation_arena)).click()
         # 点击预约，页面跳转
         time.sleep(1)
@@ -123,6 +132,7 @@ class AutoReservation:
         
         
         while True:
+            tempDriver = self.driver
             # 选择日期和时间，时间选择列表是用iframe嵌入的页面，要切换frame到contentIframe
             try:
                 WebDriverWait(self.driver, 3).until(
@@ -141,12 +151,14 @@ class AutoReservation:
                             goToDate('{}')
                         """.format(self.reservation_date))
                     except:
-                        continue
+                        raise Exception("跳转日期失败，刷新页面")
                     hoveredDate = self.driver.find_element(by=By.XPATH, value='//li[contains(@class, "hover")]').find_element(by=By.TAG_NAME, value='input').get_dom_attribute("value")
                     if hoveredDate == self.reservation_date:
                         break       
             except:
-                self.driver.refresh()
+                tempDriver.refresh()
+                self.driver = tempDriver
+                continue
             sleep(1)
             
             # 查找预约时间，判断是否可以预约
