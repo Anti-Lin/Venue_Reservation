@@ -35,7 +35,7 @@ class AutoReservation:
         )
         self.wait: WebDriverWait = WebDriverWait(
             self.driver,
-            timeout=10
+            timeout=3
         )
         self.action_chains = ActionChains(self.driver)
         self.username = username
@@ -43,6 +43,17 @@ class AutoReservation:
         self.reservation_date = reservation_date
         self.reservation_time = reservation_time
         self.reservation_arena = reservation_arena
+
+    def wait_for_element(self, by, value):
+        try:
+            element = self.wait.until(ExpectedCond.presence_of_element_located((by, value)))
+            return element
+        except:
+            print("等待超时，元素未找到，进行页面刷新")
+            self.driver.refresh()
+            return self.wait_for_element(by, value)  # 递归调用，继续等待元素
+
+
 
     def login(self):
         # 访问登录页面，点击”校内登录“按钮，等待页面跳转
@@ -84,23 +95,18 @@ class AutoReservation:
 
     def jump_to_confirm_page(self):
         # 点击场馆预约，这里有一个页面跳转的动作
-        self.wait.until(
-            ExpectedCond.presence_of_element_located(
-                (
-                    By.XPATH,
-                    '//ul[@class="ydfw_r_content"]//li[1]//a[1]'
-                )
-            )
+        self.wait_for_element(
+                By.XPATH,
+                '//ul[@class="ydfw_r_content"]//li[1]//a[1]'
         ).click()
         time.sleep(1)
         self.driver.switch_to.window(self.driver.window_handles[-1])
 
-        # 选择场馆，场馆列表使用iframe标签内嵌了一个网页，要切换frame
-        gymListFrame = self.wait.until(
-            ExpectedCond.presence_of_element_located(
-                (By.ID, 'contentIframe')
-            )
+        # 选择场馆，场馆列表使用iframe标签内嵌了一个网页，要切换frame，如果页面没有加载出来，一秒刷新一次
+        gymListFrame = self.wait_for_element(
+            By.ID, 'contentIframe'
         )
+        
         self.driver.switch_to.frame(gymListFrame)
         self.driver.find_element(by=By.XPATH, value="//a[contains(text(), '{}')]".format(self.reservation_arena)).click()
         # 点击预约，页面跳转
@@ -114,45 +120,62 @@ class AutoReservation:
                 )
             )
         ).click()
-        # 选择日期和时间，时间选择列表是用iframe嵌入的页面，要切换frame到contentIframe
-        timeListFrame = self.wait.until(
-            ExpectedCond.presence_of_element_located(
-                (By.ID, 'contentIframe')
-            )
-        )
-        self.driver.switch_to.frame(timeListFrame)
-        # 用js代码跳转到指定日期，函数名为goToDate
-        self.driver.execute_script("""
-            goToDate('{}')
-        """.format(self.reservation_date))
-        # 判断跳转到指定日期是否成功
-        hoveredDate = self.driver.find_element(by=By.XPATH, value='//li[contains(@class, "hover")]').find_element(by=By.TAG_NAME, value='input').get_dom_attribute("value")
-        assert self.reservation_date == hoveredDate
-        # 查找预约时间，判断是否可以预约
-        reservationBtn = self.driver.find_element(
-            by=By.XPATH,
-            value='//font[contains(text(), "{}")]'.format(self.reservation_time)
-        ).find_element(
-            By.XPATH,
-            value='../../td[contains(@align, "right")]//img')
-        # 判断reservationBtn是否有onClick属性
-        if reservationBtn.get_dom_attribute('onClick'):
-            # 可以预约
-            reservationBtn.click()
-            # 进入预约验证页面点击verify_button1
-            verifyBtn = self.wait.until(
-                ExpectedCond.element_to_be_clickable((By.ID, 'verify_button1'))
-            )
+        
+        
+        while True:
+            # 选择日期和时间，时间选择列表是用iframe嵌入的页面，要切换frame到contentIframe
+            try:
+                WebDriverWait(self.driver, 3).until(
+                    ExpectedCond.frame_to_be_available_and_switch_to_it(
+                        (
+                            By.ID,
+                            'contentIframe'
+                        )
+                    )
+                )
+                
+                # 用js代码跳转到指定日期，函数名为goToDate，不成功则重新跳转，直到成功
+                while True:
+                    try:
+                        self.driver.execute_script("""
+                            goToDate('{}')
+                        """.format(self.reservation_date))
+                    except:
+                        continue
+                    hoveredDate = self.driver.find_element(by=By.XPATH, value='//li[contains(@class, "hover")]').find_element(by=By.TAG_NAME, value='input').get_dom_attribute("value")
+                    if hoveredDate == self.reservation_date:
+                        break       
+            except:
+                self.driver.refresh()
             sleep(1)
-            verifyBtn.click()
-            # 等待直到valid_bg-img加载完成，从图片的src属性获取图片的base64编码
-            self.wait.until(
-                ExpectedCond.visibility_of_element_located((By.CLASS_NAME, 'valid_bg-img'))
-            )
-
-        else:
-            # 不能预约
-            raise Exception("场地：{}，日期：{}，时间：{}，无法预约".format(self.reservation_arena, self.reservation_date, self.reservation_time))
+            
+            # 查找预约时间，判断是否可以预约
+            reservationBtn = self.driver.find_element(
+                by=By.XPATH,
+                value='//font[contains(text(), "{}")]'.format(self.reservation_time)
+            ).find_element(
+                By.XPATH,
+                value='../../td[contains(@align, "right")]//img')
+            # 判断reservationBtn是否有onClick属性
+            if reservationBtn.get_dom_attribute('onClick'):
+                # 可以预约
+                reservationBtn.click()
+                # 进入预约验证页面点击verify_button1
+                verifyBtn = self.wait.until(
+                    ExpectedCond.element_to_be_clickable((By.ID, 'verify_button1'))
+                )
+                sleep(1)
+                verifyBtn.click()
+                # 等待直到valid_bg-img加载完成，从图片的src属性获取图片的base64编码
+                self.wait.until(
+                    ExpectedCond.visibility_of_element_located((By.CLASS_NAME, 'valid_bg-img'))
+                )
+                break
+            else:
+                # 不能预约，一秒钟刷新一次
+                #raise Exception("场地：{}，日期：{}，时间：{}，无法预约".format(self.reservation_arena, self.reservation_date, self.reservation_time))
+                sleep(1)
+                self.driver.refresh()
 
     def pass_verification(self):
         # 弹出验证码的模态窗口后进入该函数
@@ -180,11 +203,16 @@ class AutoReservation:
             # base64 -> image data -> image stream -> Image对象
             verifyPic = Image.open(io.BytesIO(base64.decodebytes(verifyPic_base64.encode())))
             # verifyPic.show()
-            verifyCharTarget = self.wait.until(
-                ExpectedCond.presence_of_element_located(
-                    (By.XPATH, '//span[@class="valid_tips__text"]//b')
-                )
-            ).text
+            try:
+                verifyCharTarget = self.wait.until(
+                    ExpectedCond.presence_of_element_located(
+                        (By.XPATH, '//span[@class="valid_tips__text"]//b')
+                    )
+                ).text
+            except:
+                # 换验证码
+                self.driver.find_element(By.CLASS_NAME, 'valid_refresh').click()
+                continue
             # print(verifyCharTarget)
             verifyPicWithCharTarget = image_edition.image_edition(
                 verifyPic,

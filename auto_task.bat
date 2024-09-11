@@ -4,13 +4,13 @@
 echo Activating Conda environment "changdi"...
 call conda activate changdi
 echo Starting service...
-start python service.py
+start python E:\script\Text_select_captcha\service.py
 
 :: Step 2: 执行 main.py，根据参数进行并发预定
 :: 设置变量
-set username=xxxxxxxx
-set password=xxxxxxxx
-set arena=xxxxxxxx
+set username=%USERNAME%
+set password=%PASSWORD%
+set arena=江湾体育馆羽毛球场
 ::set date=<YYYY-MM-DD>
 :: Step 2: 计算两天后的日期，使用 PowerShell 获取
 for /f %%i in ('powershell -Command "(Get-Date).AddDays(2).ToString(\"yyyy-MM-dd\")"') do set date=%%i
@@ -25,7 +25,7 @@ set times=09:00 10:00 11:00
 :: 遍历所有预定时间，并使用 start 命令实现并发执行
 for %%t in (%times%) do (
     echo Making reservation for %%t...
-    start python main.py --username %username% --password %password% --reservation-arena %arena% --reservation-date %date% --reservation-time %%t
+    start python E:\script\Text_select_captcha\main.py --username %username% --password %password% --reservation-arena %arena% --reservation-date %date% --reservation-time %%t
 )
 
 :: 所有任务已启动
